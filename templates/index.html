@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>경쟁사 분석 보고서 생성기</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <rect x="0" y="0" width="7" height="7" rx="1.5" fill="currentColor"/>
+        <rect x="9" y="0" width="7" height="7" rx="1.5" fill="currentColor" opacity=".35"/>
+        <rect x="0" y="9" width="7" height="7" rx="1.5" fill="currentColor" opacity=".35"/>
+        <rect x="9" y="9" width="7" height="7" rx="1.5" fill="currentColor"/>
+      </svg>
+      <span>Analyzer</span>
+    </div>
+    <button class="hist-btn" onclick="toggleHistory()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+      </svg>
+      보고서 히스토리
+      <span class="hist-count" id="historyCount">0</span>
+    </button>
+  </div>
+</header>
+
+<!-- MAIN -->
+<main class="page">
+
+  <!-- ── INPUT CARD ── -->
+  <div class="card" id="inputCard">
+
+    <!-- Hero -->
+    <div class="hero">
+      <p class="hero-eyebrow">AI 기반 경쟁사 분석 · 4관점 동시 분석</p>
+      <h1 class="hero-h1">경쟁사 홈페이지<br>분석 보고서 자동 생성</h1>
+      <p class="hero-sub">URL 하나로 영업·마케팅·경영·법적 검토까지 담은 PDF를 즉시 생성합니다</p>
+    </div>
+
+    <!-- Search bar row -->
+    <div class="search-row">
+      <div class="search-input-wrap">
+        <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input class="search-input" type="text" id="competitorUrl"
+          placeholder="경쟁사 URL을 입력하세요  (예: https://competitor.com)" autocomplete="off">
+      </div>
+      <button class="btn-analyze" id="analyzeBtn" onclick="startAnalysis()">분석 보고서 생성</button>
+    </div>
+
+    <!-- Inline error -->
+    <div class="inline-err hidden" id="formError"></div>
+
+    <!-- Secondary options -->
+    <div class="options-row">
+      <div class="opt-field">
+        <label class="opt-label">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+            <polyline points="9 22 9 12 15 12 15 22"/>
+          </svg>
+          자사 URL <span class="opt-hint">선택 — 입력 시 자사 vs 경쟁사 비교 추가</span>
+        </label>
+        <input class="opt-input" type="text" id="ownUrl"
+          placeholder="https://mycompany.com" autocomplete="off">
+      </div>
+
+      <div class="opt-field">
+        <label class="opt-label">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+          첨부파일 <span class="opt-hint">선택 — PDF·이미지</span>
+        </label>
+        <div class="dropzone" id="dropzone"
+          onclick="document.getElementById('fileInput').click()"
+          ondragover="onDragOver(event)" ondragleave="onDragLeave()" ondrop="onDrop(event)">
+          드래그하거나 <span>클릭하여 업로드</span> · PDF, PNG, JPG
+        </div>
+        <input type="file" id="fileInput" multiple accept=".pdf,.png,.jpg,.jpeg,.gif,.webp" style="display:none" onchange="onFileSelect(event)">
+        <div class="file-row" id="fileList"></div>
+      </div>
+    </div>
+
+    <!-- Chapter badges -->
+    <div class="chapter-row">
+      <span class="ch-badge">CH 01 경쟁사 분석</span>
+      <span class="ch-sep">·</span>
+      <span class="ch-badge">CH 02 자사 비교</span>
+      <span class="ch-sep">·</span>
+      <span class="ch-badge">CH 03 대응 전략</span>
+      <span class="ch-sep">·</span>
+      <span class="ch-badge">CH 04 법적 검토</span>
+    </div>
+
+  </div><!-- /inputCard -->
+
+  <!-- ── PROGRESS ── -->
+  <div class="card hidden" id="progressCard">
+    <div class="prog-hero">
+      <div class="ring-wrap">
+        <svg width="64" height="64" viewBox="0 0 52 52">
+          <circle cx="26" cy="26" r="21" fill="none" stroke="#EBEBEB" stroke-width="4"/>
+          <circle cx="26" cy="26" r="21" fill="none" stroke="#111" stroke-width="4"
+            stroke-dasharray="132" stroke-dashoffset="132" stroke-linecap="round"
+            transform="rotate(-90 26 26)" id="progArc"/>
+        </svg>
+        <span class="ring-pct" id="progPct">0<small>%</small></span>
+      </div>
+      <div class="prog-info">
+        <p class="prog-title">분석 진행 중</p>
+        <p class="prog-msg" id="progressMsg">잠시 기다려주세요...</p>
+      </div>
+    </div>
+
+    <div class="pbar-wrap">
+      <div class="pbar-fill" style="width:0%"></div>
+    </div>
+
+    <ul class="step-list">
+      <li class="step-item" id="step-crawling">
+        <span class="s-dot"></span>
+        <span class="s-name">홈페이지 크롤링</span>
+        <span class="s-state"></span>
+      </li>
+      <li class="step-item" id="step-analyzing">
+        <span class="s-dot"></span>
+        <span class="s-name">Claude AI 4관점 분석</span>
+        <span class="s-state"></span>
+      </li>
+      <li class="step-item" id="step-generating">
+        <span class="s-dot"></span>
+        <span class="s-name">PDF 보고서 생성</span>
+        <span class="s-state"></span>
+      </li>
+      <li class="step-item" id="step-done">
+        <span class="s-dot"></span>
+        <span class="s-name">완료</span>
+        <span class="s-state"></span>
+      </li>
+    </ul>
+  </div>
+
+  <!-- ── RESULT ── -->
+  <div class="card hidden" id="resultCard">
+    <div class="result-check-wrap">
+      <div class="result-check">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+      </div>
+    </div>
+    <h2 class="result-h">보고서 생성 완료</h2>
+    <p class="result-sub" id="resultInfo"></p>
+
+    <div class="result-btns">
+      <button class="btn-analyze" onclick="downloadReport()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        PDF 다운로드
+      </button>
+      <button class="btn-ghost" onclick="resetForm()">새 분석 시작</button>
+    </div>
+  </div>
+
+  <!-- ── ERROR ── -->
+  <div class="card hidden" id="errorCard">
+    <div class="error-icon">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
+        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </div>
+    <h2 class="result-h">분석 실패</h2>
+    <p class="err-msg" id="errorMsg"></p>
+    <button class="btn-ghost" onclick="resetForm()">다시 시도</button>
+  </div>
+
+</main>
+
+<!-- SIDEBAR (history) -->
+<aside class="sidebar" id="historyPanel">
+  <div class="sb-head">
+    <span class="sb-title">보고서 히스토리</span>
+    <button class="icon-btn" onclick="toggleHistory()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+  </div>
+  <div class="sb-search">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+    </svg>
+    <input type="text" id="historySearch" placeholder="URL 또는 회사명" oninput="filterHistory(this.value)">
+  </div>
+  <div class="sb-list" id="historyList">
+    <div class="sb-empty">기록 없음</div>
+  </div>
+
+  <div class="cmp-dock">
+    <p class="dock-hd">비교 분석 선택</p>
+    <div class="dock-slots">
+      <div class="dock-slot" data-slot="1">
+        <span class="dock-tag">A</span>
+        <span class="dock-ph">목록에서 선택</span>
+        <div class="dock-sel hidden">
+          <span class="dock-sel-url"></span>
+          <span class="dock-sel-dt"></span>
+        </div>
+      </div>
+      <span class="dock-vs">VS</span>
+      <div class="dock-slot" data-slot="2">
+        <span class="dock-tag">B</span>
+        <span class="dock-ph">목록에서 선택</span>
+        <div class="dock-sel hidden">
+          <span class="dock-sel-url"></span>
+          <span class="dock-sel-dt"></span>
+        </div>
+      </div>
+    </div>
+    <button class="btn-dock" disabled onclick="runComparison()">비교 분석 실행</button>
+  </div>
+</aside>
+
+<!-- SIDEBAR OVERLAY -->
+<div class="sidebar-overlay hidden" id="sidebarOverlay" onclick="toggleHistory()"></div>
+
+<!-- COMPARE MODAL -->
+<div class="overlay hidden" id="compareModal" onclick="handleOverlayClick(event)">
+  <div class="modal">
+    <div class="modal-bar">
+      <span class="modal-ttl">비교 분석 결과</span>
+      <button class="icon-btn" onclick="closeCompareModal()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body" id="compareModalBody">
+      <div class="modal-spin">로딩 중...</div>
+    </div>
+  </div>
+</div>
+
+<script src="/static/js/app.js"></script>
+</body>
+</html>

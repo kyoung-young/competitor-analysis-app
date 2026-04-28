@@ -1,0 +1,22 @@
+# 환경변수 (절대 올리면 안됨)
+.env
+
+# 생성된 파일들 (용량 큼)
+reports/
+uploads/
+history/
+__pycache__/
+*.pyc
+*.pyo
+modules/__pycache__/
+
+# 로그
+*.log
+server.log
+
+# 기타
+.DS_Store
+.claude/
+*.egg-info/
+dist/
+build/
