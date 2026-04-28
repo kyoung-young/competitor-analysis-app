@@ -13,7 +13,11 @@ from flask import Flask, request, jsonify, send_file, render_template
 from dotenv import load_dotenv
 
 load_dotenv(override=True)
+_all_keys = sorted(os.environ.keys())
+_anthropic_keys = [k for k in _all_keys if 'anthropic' in k.lower() or 'api' in k.lower()]
 print(f"[STARTUP] ANTHROPIC_API_KEY set: {bool(os.getenv('ANTHROPIC_API_KEY'))}")
+print(f"[STARTUP] API-related env keys: {_anthropic_keys}")
+print(f"[STARTUP] Total env vars count: {len(_all_keys)}")
 
 from modules.crawler import crawl_website
 from modules.analyzer import analyze_with_claude
