@@ -13,6 +13,7 @@ from flask import Flask, request, jsonify, send_file, render_template
 from dotenv import load_dotenv
 
 load_dotenv(override=True)
+print(f"[STARTUP] ANTHROPIC_API_KEY set: {bool(os.getenv('ANTHROPIC_API_KEY'))}")
 
 from modules.crawler import crawl_website
 from modules.analyzer import analyze_with_claude
@@ -223,7 +224,7 @@ def history_by_url():
 
 @app.route("/health")
 def health():
-    api_key_set = bool(os.getenv("ANTHROPIC_API_KEY"))
+    api_key_set = bool((os.getenv("ANTHROPIC_API_KEY") or "").strip())
     font_ok = os.path.exists(os.path.join("fonts", "NanumGothic.ttf"))
     return jsonify({
         "status": "ok",

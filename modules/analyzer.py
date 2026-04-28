@@ -321,7 +321,8 @@ def _normalize(result: dict) -> dict:
 def analyze_with_claude(crawl_data: dict, attachment_paths: list,
                         own_crawl_data: dict | None = None) -> dict:
     """Claude API를 통한 홈페이지 종합 분석."""
-    api_key = os.getenv("ANTHROPIC_API_KEY")
+    api_key = (os.getenv("ANTHROPIC_API_KEY") or "").strip()
+    print(f"[DEBUG] ANTHROPIC_API_KEY present: {bool(api_key)}, length: {len(api_key)}")
     if not api_key:
         raise Exception("ANTHROPIC_API_KEY 환경변수가 설정되지 않았습니다.")
 
